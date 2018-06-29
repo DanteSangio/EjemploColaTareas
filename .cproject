@@ -43,9 +43,9 @@
 								<option id="com.crt.advproject.gcc.hdrlib.787120719" name="Library headers" superClass="com.crt.advproject.gcc.hdrlib" value="com.crt.advproject.gcc.hdrlib.codered" valueType="enumerated"/>
 								<option id="com.crt.advproject.gcc.specs.1419498580" name="Specs" superClass="com.crt.advproject.gcc.specs" value="com.crt.advproject.gcc.specs.codered" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.304153274" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FRTOS/Example/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Example/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc_chip_175x_6x/inc}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FRTOS/freeRTOS/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/freeRTOS/inc}&quot;"/>
 								</option>
 								<inputType id="com.crt.advproject.compiler.input.186274466" superClass="com.crt.advproject.compiler.input"/>
 							</tool>
@@ -56,8 +56,8 @@
 								<option id="com.crt.advproject.gas.hdrlib.1616496833" name="Library headers" superClass="com.crt.advproject.gas.hdrlib" value="com.crt.advproject.gas.hdrlib.codered" valueType="enumerated"/>
 								<option id="com.crt.advproject.gas.specs.2058730941" name="Specs" superClass="com.crt.advproject.gas.specs" value="com.crt.advproject.gas.specs.codered" valueType="enumerated"/>
 								<option id="gnu.both.asm.option.include.paths.1805060473" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="D:/Workspace/FRTOS/FRTOS/inc"/>
-									<listOptionValue builtIn="false" value="../FRTOS/lpc_chip_175x_6x/inc"/>
+									<listOptionValue builtIn="false" value="D:/Workspace/${ProjName}/${ProjName}/inc"/>
+									<listOptionValue builtIn="false" value="../${ProjName}/lpc_chip_175x_6x/inc"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.292723990" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 								<inputType id="com.crt.advproject.assembler.input.507633431" name="Additional Assembly Source Files" superClass="com.crt.advproject.assembler.input"/>
@@ -67,7 +67,7 @@
 								<option id="com.crt.advproject.link.gcc.multicore.master.userobjs.1649208158" name="Slave Objects (not visible)" superClass="com.crt.advproject.link.gcc.multicore.master.userobjs" valueType="userObjs"/>
 								<option id="com.crt.advproject.link.arch.537608377" name="Architecture" superClass="com.crt.advproject.link.arch" value="com.crt.advproject.link.target.cm3" valueType="enumerated"/>
 								<option id="com.crt.advproject.link.thumb.527795604" name="Thumb mode" superClass="com.crt.advproject.link.thumb" value="true" valueType="boolean"/>
-								<option id="com.crt.advproject.link.script.1875801322" name="Linker script" superClass="com.crt.advproject.link.script" value="&quot;FRTOS_Debug.ld&quot;" valueType="string"/>
+								<option id="com.crt.advproject.link.script.1875801322" name="Linker script" superClass="com.crt.advproject.link.script" value="&quot;EjemploColaTarea_Debug.ld&quot;" valueType="string"/>
 								<option id="com.crt.advproject.link.manage.678921339" name="Manage linker script" superClass="com.crt.advproject.link.manage" value="true" valueType="boolean"/>
 								<option id="gnu.c.link.option.nostdlibs.2080444560" name="No startup or default libs (-nostdlib)" superClass="gnu.c.link.option.nostdlibs" value="true" valueType="boolean"/>
 								<option id="gnu.c.link.option.other.120565988" name="Other options (-Xlinker [option])" superClass="gnu.c.link.option.other" valueType="stringList">
@@ -156,7 +156,7 @@
 								<option id="com.crt.advproject.link.gcc.multicore.master.userobjs.1342719069" name="Slave Objects (not visible)" superClass="com.crt.advproject.link.gcc.multicore.master.userobjs" valueType="userObjs"/>
 								<option id="com.crt.advproject.link.arch.1008384288" name="Architecture" superClass="com.crt.advproject.link.arch" value="com.crt.advproject.link.target.cm3" valueType="enumerated"/>
 								<option id="com.crt.advproject.link.thumb.402185278" name="Thumb mode" superClass="com.crt.advproject.link.thumb" value="true" valueType="boolean"/>
-								<option id="com.crt.advproject.link.script.648587265" name="Linker script" superClass="com.crt.advproject.link.script" value="&quot;FRTOS_Release.ld&quot;" valueType="string"/>
+								<option id="com.crt.advproject.link.script.648587265" name="Linker script" superClass="com.crt.advproject.link.script" value="&quot;EjemploColaTarea_Release.ld&quot;" valueType="string"/>
 								<option id="com.crt.advproject.link.manage.596895145" name="Manage linker script" superClass="com.crt.advproject.link.manage" value="true" valueType="boolean"/>
 								<option id="gnu.c.link.option.nostdlibs.1198024983" name="No startup or default libs (-nostdlib)" superClass="gnu.c.link.option.nostdlibs" value="true" valueType="boolean"/>
 								<option id="gnu.c.link.option.other.310840913" name="Other options (-Xlinker [option])" superClass="gnu.c.link.option.other" valueType="stringList">

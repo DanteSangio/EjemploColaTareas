@@ -24,25 +24,25 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: FRTOS.axf
+all: EjemploColaTarea.axf
 
 # Tool invocations
-FRTOS.axf: $(OBJS) $(USER_OBJS)
+EjemploColaTarea.axf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -L"C:\Users\Fede\Documents\MCUXpressoIDE_10.1.1_606\workspace\lpc_chip_175x_6x\Debug" -Xlinker -Map="FRTOS.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "FRTOS_Debug.ld" -o "FRTOS.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -L"C:\Users\Fede\Documents\MCUXpressoIDE_10.1.1_606\workspace\lpc_chip_175x_6x\Debug" -Xlinker -Map="EjemploColaTarea.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "EjemploColaTarea_Debug.ld" -o "EjemploColaTarea.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) FRTOS.axf
+	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) EjemploColaTarea.axf
 	-@echo ' '
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "FRTOS.axf"; # arm-none-eabi-objcopy -v -O binary "FRTOS.axf" "FRTOS.bin" ; # checksum -p LPC1769 -d "FRTOS.bin";
+	-arm-none-eabi-size "EjemploColaTarea.axf"; # arm-none-eabi-objcopy -v -O binary "EjemploColaTarea.axf" "EjemploColaTarea.bin" ; # checksum -p LPC1769 -d "EjemploColaTarea.bin";
 	-@echo ' '
 
 .PHONY: all clean dependents
