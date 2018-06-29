@@ -107,7 +107,7 @@ int main(void)
 				(xTaskHandle *) NULL); //comento la tarea 2
 
 	/* Start the scheduler */
-	vTaskStartScheduler();
+	vTaskStartScheduler(); // Inicio sched
 
 	/* Nunca debería arribar aquí */
 
