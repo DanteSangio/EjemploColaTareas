@@ -81,12 +81,6 @@ static void xTask2(void *pvParameters)
 */
 int main(void)
 {
-	//Kevin gato!
-	//A verlaaaaa
-	//Dale papa
-	//Ya estoy ready
-	//Dale que va el septimo
-
 
 	uC_StartUp (); // Config
 	SystemCoreClockUpdate();
