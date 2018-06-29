@@ -85,6 +85,7 @@ int main(void)
 	//A verlaaaaa
 	//Dale papa
 	//Ya estoy ready
+	//Dale que va el septimo
 
 	uC_StartUp ();
 	SystemCoreClockUpdate();
