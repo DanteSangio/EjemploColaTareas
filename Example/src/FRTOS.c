@@ -84,6 +84,7 @@ int main(void)
 	//Kevin gato!
 	//A verlaaaaa
 	//Dale papa
+	//Ya estoy ready
 
 	uC_StartUp ();
 	SystemCoreClockUpdate();
