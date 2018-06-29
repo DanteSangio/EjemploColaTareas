@@ -100,7 +100,7 @@ int main(void)
 
 	xTaskCreate(vTask1, (char *) "vTaskLed1",
 				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
-				(xTaskHandle *) NULL);
+				(xTaskHandle *) NULL); //comento la tarea 1
 
 	xTaskCreate(xTask2, (char *) "vTaskLed2",
 				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
