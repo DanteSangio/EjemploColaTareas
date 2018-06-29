@@ -104,7 +104,7 @@ int main(void)
 
 	xTaskCreate(xTask2, (char *) "vTaskLed2",
 				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
-				(xTaskHandle *) NULL);
+				(xTaskHandle *) NULL); //comento la tarea 2
 
 	/* Start the scheduler */
 	vTaskStartScheduler();
