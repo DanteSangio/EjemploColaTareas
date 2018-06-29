@@ -91,7 +91,7 @@ int main(void)
 	uC_StartUp (); // Config
 	SystemCoreClockUpdate();
 
-	vSemaphoreCreateBinary(Semaforo_1);//Creacion de semaforo
+	vSemaphoreCreateBinary(Semaforo_1);
 	vSemaphoreCreateBinary(Semaforo_2);
 
 	Cola_1 = xQueueCreate(1, sizeof(uint32_t));	//Creamos una cola
