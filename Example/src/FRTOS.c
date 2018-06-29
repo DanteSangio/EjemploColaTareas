@@ -87,7 +87,8 @@ int main(void)
 	//Ya estoy ready
 	//Dale que va el septimo
 
-	uC_StartUp ();
+
+	uC_StartUp (); // Config
 	SystemCoreClockUpdate();
 
 	vSemaphoreCreateBinary(Semaforo_1);//Creacion de semaforo
