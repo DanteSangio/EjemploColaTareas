@@ -93,7 +93,7 @@ int main(void)
 	vSemaphoreCreateBinary(Semaforo_1);//Creacion de semaforo
 	vSemaphoreCreateBinary(Semaforo_2);
 
-	Cola_1 = xQueueCreate(1, sizeof(uint32_t));
+	Cola_1 = xQueueCreate(1, sizeof(uint32_t));	//Creamos una cola
 
 	xSemaphoreTake(Semaforo_1 , portMAX_DELAY );
 
