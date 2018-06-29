@@ -81,6 +81,8 @@ static void xTask2(void *pvParameters)
 */
 int main(void)
 {
+	//Kevin gato
+
 	uC_StartUp ();
 	SystemCoreClockUpdate();
 
