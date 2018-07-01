@@ -45,7 +45,7 @@ static void vTask1(void *pvParameters)
 	{
 		unsigned int Parametro=5;
 
-		vTaskDelay(5000/portTICK_RATE_MS);
+		vTaskDelay(5000/portTICK_RATE_MS);//el port tick esta configurado cada 1 seg, hago un delay de 5 seg
 
 		xQueueSendToBack(Cola_1,&Parametro,portMAX_DELAY);
 
@@ -60,15 +60,15 @@ static void xTask2(void *pvParameters)
 
 	while (1)
 	{
-		xQueueReceive(Cola_1,&Receive,portMAX_DELAY);
-
+		xQueueReceive(Cola_1,&Receive,portMAX_DELAY);//portMax_DELAY hace que se quede esperando un tiempo inf a que llegue el dato
+													 //recibe la cant de parpadeos que tiene que hacer
 		Receive*=2;
 
 		while(Receive)
 		{
-			Chip_GPIO_SetPinToggle(LPC_GPIO,PORT(0),PIN(22));
+			Chip_GPIO_SetPinToggle(LPC_GPIO,PORT(0),PIN(22)); //toggleo el led
 			Receive--;
-			vTaskDelay(500/portTICK_RATE_MS);
+			vTaskDelay(500/portTICK_RATE_MS);// delay 0,5 seg
 		}
 	}
 }
@@ -85,20 +85,23 @@ int main(void)
 	uC_StartUp (); // Config
 	SystemCoreClockUpdate();
 
-	vSemaphoreCreateBinary(Semaforo_1);
+	vSemaphoreCreateBinary(Semaforo_1);//Creación de semaforos
 	vSemaphoreCreateBinary(Semaforo_2);
 
-	Cola_1 = xQueueCreate(1, sizeof(uint32_t));	//Creamos una cola
+	Cola_1 = xQueueCreate(1, sizeof(uint32_t));	//Creación de una cola de tamaño 1 y tipo uint32
 
 	xSemaphoreTake(Semaforo_1 , portMAX_DELAY );
 
+	/*creación de tarea asociada al código vTask1, con nombre vTaskLed1, tamaño de stack min,
+	  no recibe parametros prioridad idle+1 y no posee handler
+	*/
 	xTaskCreate(vTask1, (char *) "vTaskLed1",
 				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
-				(xTaskHandle *) NULL); //comento la tarea 1
-
+				(xTaskHandle *) NULL);
+	//Creación de tarea 2
 	xTaskCreate(xTask2, (char *) "vTaskLed2",
 				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
-				(xTaskHandle *) NULL); //comento la tarea 2
+				(xTaskHandle *) NULL);
 
 	/* Start the scheduler */
 	vTaskStartScheduler(); // Inicio sched

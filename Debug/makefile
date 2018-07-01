@@ -26,11 +26,14 @@ endif
 # All Target
 all: EjemploColaTarea.axf
 
+dependents:
+	-cd D:/Facultad/Digitales\ II/Repositorio\ MCU/lpc_chip_175x_6x/Debug && $(MAKE) all
+
 # Tool invocations
-EjemploColaTarea.axf: $(OBJS) $(USER_OBJS)
+EjemploColaTarea.axf: $(OBJS) $(USER_OBJS) D:/Facultad/Digitales\ II/Repositorio\ MCU/lpc_chip_175x_6x/Debug/liblpc_chip_175x_6x.a
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -L"C:\Users\Fede\Documents\MCUXpressoIDE_10.1.1_606\workspace\lpc_chip_175x_6x\Debug" -Xlinker -Map="EjemploColaTarea.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "EjemploColaTarea_Debug.ld" -o "EjemploColaTarea.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -L"D:\Facultad\Digitales II\Repositorio MCU\lpc_chip_175x_6x\Debug" -Xlinker -Map="EjemploColaTarea.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "EjemploColaTarea_Debug.ld" -o "EjemploColaTarea.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
@@ -47,5 +50,6 @@ post-build:
 
 .PHONY: all clean dependents
 .SECONDARY: post-build
+D:/Facultad/Digitales\ II/Repositorio\ MCU/lpc_chip_175x_6x/Debug/liblpc_chip_175x_6x.a:
 
 -include ../makefile.targets
