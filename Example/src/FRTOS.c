@@ -1,5 +1,4 @@
 /*
-===============================================================================
  Name        : FRTOS.c
  Author      : $(author)
  Version     :
@@ -29,6 +28,8 @@ QueueHandle_t Cola_1;
 #define OUTPUT		((uint8_t) 1)
 #define INPUT		((uint8_t) 0)
 
+#define DEBUGOUT(...) printf(__VA_ARGS__)
+
 
 void uC_StartUp (void)
 {
@@ -45,9 +46,13 @@ static void vTask1(void *pvParameters)
 	{
 		unsigned int Parametro=5;
 
-		vTaskDelay(5000/portTICK_RATE_MS);//el port tick esta configurado cada 1 seg, hago un delay de 5 seg
+		DEBUGOUT("Envio 5 datos\n");	//Imprimo en la consola
+
+		vTaskDelay(5000/portTICK_RATE_MS);
 
 		xQueueSendToBack(Cola_1,&Parametro,portMAX_DELAY);
+
+		//DEBUGOUT("Tick: %d\r\n", tickCnt);	//Imprimo en la consola
 
 		vTaskDelete(NULL);	//Borra la tarea, no necesitaria el while(1)
 	}
@@ -60,15 +65,18 @@ static void xTask2(void *pvParameters)
 
 	while (1)
 	{
-		xQueueReceive(Cola_1,&Receive,portMAX_DELAY);//portMax_DELAY hace que se quede esperando un tiempo inf a que llegue el dato
-													 //recibe la cant de parpadeos que tiene que hacer
+		xQueueReceive(Cola_1,&Receive,portMAX_DELAY);
+
 		Receive*=2;
+
+		DEBUGOUT("Recibo 5 datos\nMultiplico x2 para poder encender y apagar en cada dato\n");	//Imprimo en la consola
 
 		while(Receive)
 		{
-			Chip_GPIO_SetPinToggle(LPC_GPIO,PORT(0),PIN(22)); //toggleo el led
+			DEBUGOUT("Recibo: %d\n",Receive);	//Imprimo en la consola
+			Chip_GPIO_SetPinToggle(LPC_GPIO,PORT(0),PIN(22));
 			Receive--;
-			vTaskDelay(500/portTICK_RATE_MS);// delay 0,5 seg
+			vTaskDelay(500/portTICK_RATE_MS);
 		}
 	}
 }
@@ -85,26 +93,25 @@ int main(void)
 	uC_StartUp (); // Config
 	SystemCoreClockUpdate();
 
-	vSemaphoreCreateBinary(Semaforo_1);//Creación de semaforos
+	DEBUGOUT("Inicializando..\n");
+
+	vSemaphoreCreateBinary(Semaforo_1);
 	vSemaphoreCreateBinary(Semaforo_2);
 
-	Cola_1 = xQueueCreate(1, sizeof(uint32_t));	//Creación de una cola de tamaño 1 y tipo uint32
+	Cola_1 = xQueueCreate(1, sizeof(uint32_t));	//Creamos una cola
 
 	xSemaphoreTake(Semaforo_1 , portMAX_DELAY );
 
-	/*creación de tarea asociada al código vTask1, con nombre vTaskLed1, tamaño de stack min,
-	  no recibe parametros prioridad idle+1 y no posee handler
-	*/
 	xTaskCreate(vTask1, (char *) "vTaskLed1",
 				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
 				(xTaskHandle *) NULL);
-	//Creación de tarea 2
+
 	xTaskCreate(xTask2, (char *) "vTaskLed2",
 				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
 				(xTaskHandle *) NULL);
 
 	/* Start the scheduler */
-	vTaskStartScheduler(); // Inicio sched
+	vTaskStartScheduler();
 
 	/* Nunca debería arribar aquí */
 
