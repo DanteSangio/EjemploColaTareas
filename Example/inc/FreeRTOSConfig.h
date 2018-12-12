@@ -70,10 +70,7 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#if defined(NO_BOARD_LIB)
 extern uint32_t SystemCoreClock;
-#endif
-
 
 /* For SystemCoreClock */
 //#include "board.h"

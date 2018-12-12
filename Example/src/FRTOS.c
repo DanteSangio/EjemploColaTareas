@@ -7,152 +7,325 @@
 ===============================================================================
 */
 #include "chip.h"
+#include "board.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
 #include "queue.h"
 #include <cr_section_macros.h>
 
-
-SemaphoreHandle_t Semaforo_1;
-SemaphoreHandle_t Semaforo_2;
-
-QueueHandle_t Cola_1;
-
-#define PORT(x) 	((uint8_t) x)
-#define PIN(x)		((uint8_t) x)
-#define OUTPUT		((uint8_t) 1)
-#define INPUT		((uint8_t) 0)
-
-//Placa Infotronic
-#define LED_STICK	PORT(0),PIN(22)
-#define	BUZZER		PORT(0),PIN(28)
-#define	SW1			PORT(2),PIN(10)
-#define SW2			PORT(0),PIN(18)
-#define	SW3			PORT(0),PIN(11)
-#define SW4			PORT(2),PIN(13)
-#define SW5			PORT(1),PIN(26)
-#define	LED1		PORT(2),PIN(0)
-#define	LED2		PORT(0),PIN(23)
-#define	LED3		PORT(0),PIN(21)
-#define	LED4		PORT(0),PIN(27)
-#define	RGBB		PORT(2),PIN(1)
-#define	RGBG		PORT(2),PIN(2)
-#define	RGBR		PORT(2),PIN(3)
-
-#define DEBUGOUT(...) printf(__VA_ARGS__)
+#include "TFT_ILI9163C.h"
 
 
-void uC_StartUp (void)
+// SSP - Variables globales
+static SSP_ConfigFormat ssp_format;
+
+static void vTestTFTTask( void *pvParameters );
+
+
+#define CLM_START1 0
+#define CLM_START2 20
+#define CLM_START3 40
+#define CLM_START4 60
+#define CLM_START5 80
+#define PAGE_START 0
+#define SQUARE_SIZE 50
+
+
+static void prvSetupHardware(void)
 {
-	Chip_GPIO_Init (LPC_GPIO);
-	Chip_GPIO_SetDir (LPC_GPIO, LED_STICK, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, LED_STICK, IOCON_MODE_INACT, IOCON_FUNC0);
-	Chip_GPIO_SetDir (LPC_GPIO, BUZZER, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, BUZZER, IOCON_MODE_INACT, IOCON_FUNC0);
-	Chip_GPIO_SetDir (LPC_GPIO, RGBB, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, RGBB, IOCON_MODE_INACT, IOCON_FUNC0);
-	Chip_GPIO_SetDir (LPC_GPIO, RGBG, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, RGBG, IOCON_MODE_INACT, IOCON_FUNC0);
-	Chip_GPIO_SetDir (LPC_GPIO, RGBR, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, RGBR, IOCON_MODE_INACT, IOCON_FUNC0);
-	Chip_GPIO_SetDir (LPC_GPIO, LED1, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, LED1, IOCON_MODE_INACT, IOCON_FUNC0);
-	Chip_GPIO_SetDir (LPC_GPIO, LED2, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, LED2, IOCON_MODE_INACT, IOCON_FUNC0);
-	Chip_GPIO_SetDir (LPC_GPIO, LED3, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, LED3, IOCON_MODE_INACT, IOCON_FUNC0);
-	Chip_GPIO_SetDir (LPC_GPIO, LED4, OUTPUT);
-	Chip_IOCON_PinMux (LPC_IOCON, LED4, IOCON_MODE_INACT, IOCON_FUNC0);
-
-	//Salidas apagadas
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED_STICK);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, BUZZER);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, RGBR);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, RGBG);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, RGBB);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED1);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED2);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED3);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO, LED4);
-}
-
-
-/*TAREA QUE GUARDA EL DATO*/
-static void vTask1(void *pvParameters)
-{
-	while (1)
-	{
-		unsigned int Parametro=5;
-
-		DEBUGOUT("Envio 5 datos\n");	//Imprimo en la consola
-
-		vTaskDelay(2000/portTICK_RATE_MS);
-
-		xQueueSendToBack(Cola_1,&Parametro,portMAX_DELAY);
-
-		vTaskDelete(NULL);	//Borra la tarea, no necesitaria el while(1)
-	}
-}
-
-/*TAREA QUE RECIBE EL DATO*/
-static void xTask2(void *pvParameters)
-{
-	unsigned int Receive;
-
-	while (1)
-	{
-		xQueueReceive(Cola_1,&Receive,portMAX_DELAY);
-
-		Receive*=2;
-
-		DEBUGOUT("Recibo 5 datos\n"
-				"Multiplico x2 para poder encender y apagar en cada dato\n");	//Imprimo en la consola
-
-		while(Receive)
-		{
-			DEBUGOUT("Recibo: %d\n",Receive);	//Imprimo en la consola
-			Chip_GPIO_SetPinToggle(LPC_GPIO,BUZZER);
-			Chip_GPIO_SetPinToggle(LPC_GPIO,LED_STICK);
-			Receive--;
-			vTaskDelay(500/portTICK_RATE_MS);
-		}
-	}
-}
-
-/*
- * PROGRAMA QUE TRABAJA CON DOS TAREAS Y UNA COLA
- * Una tarea envia 5 datos a una cola y la otra tarea recive esos 5 datos encendiendo el led
- * del stick cada vez que recibe un dato.
- *
-*/
-int main(void)
-{
-	uC_StartUp (); // Config
 	SystemCoreClockUpdate();
+	Board_Init();
 
-	DEBUGOUT("Inicializando..\n");
+	/*
+	Board_LED_Set(LED0_GPIO_PORT_NUM,LED0_GPIO_BIT_NUM, true);
+	Board_LED_Set(LED1_GPIO_PORT_NUM,LED1_GPIO_BIT_NUM, true);
+	Board_LED_Set(LED2_GPIO_PORT_NUM,LED2_GPIO_BIT_NUM, true);
+	Board_LED_Set(LED3_GPIO_PORT_NUM,LED3_GPIO_BIT_NUM, true);
+	Board_LED_Set(LED4_GPIO_PORT_NUM,LED4_GPIO_BIT_NUM, true);
+	Board_LED_Set(LED5_GPIO_PORT_NUM,LED5_GPIO_BIT_NUM, true);
+	Board_LED_Set(LED6_GPIO_PORT_NUM,LED6_GPIO_BIT_NUM, true);
+	Board_LED_Set(LED7_GPIO_PORT_NUM,LED7_GPIO_BIT_NUM, true);
+*/
 
-	vSemaphoreCreateBinary(Semaforo_1);
-	vSemaphoreCreateBinary(Semaforo_2);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, A0_PORT_NUM, A0_BIT_NUM);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, CS_PORT_NUM, CS_BIT_NUM);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO, RST_PORT_NUM, RST_BIT_NUM);
 
-	Cola_1 = xQueueCreate(1, sizeof(uint32_t));	//Creamos una cola
 
-	xSemaphoreTake(Semaforo_1 , portMAX_DELAY );
+	Chip_GPIO_WritePortBit(LPC_GPIO,A0_PORT_NUM,A0_BIT_NUM,false);
+	Chip_GPIO_WritePortBit(LPC_GPIO,CS_PORT_NUM,CS_BIT_NUM,false);
+	Chip_GPIO_WritePortBit(LPC_GPIO,RST_PORT_NUM,RST_BIT_NUM,true);
 
-	xTaskCreate(vTask1, (char *) "vTaskLed1",
-				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
-				(xTaskHandle *) NULL);
+	// SSP initialization
+	Board_SSP_Init(LPC_SSP1);
+	Chip_SSP_Init(LPC_SSP1);
+	ssp_format.frameFormat = SSP_FRAMEFORMAT_SPI;
+	ssp_format.bits = SSP_BITS_8;
+	ssp_format.clockMode = SSP_CLOCK_CPHA0_CPOL0;
+	Chip_SSP_SetFormat(LPC_SSP1, ssp_format.bits, ssp_format.frameFormat, ssp_format.clockMode);
+	Chip_SSP_Enable(LPC_SSP1);
 
-	xTaskCreate(xTask2, (char *) "vTaskLed2",
-				configMINIMAL_STACK_SIZE, NULL, (tskIDLE_PRIORITY + 1UL),
-				(xTaskHandle *) NULL);
+	NVIC_EnableIRQ(SSP1_IRQn);
+	Chip_SSP_SetMaster(LPC_SSP1, 1);
+}
+/*-----------------------------------------------------------*/
 
-	/* Start the scheduler */
+int main( void )
+{
+	prvSetupHardware();
+
+	/* Init the semi-hosting. */
+	printf( "\n" );
+
+	xTaskCreate(vTestTFTTask,"Test TFT",1000,NULL,1,NULL);
+
+	/* Start the scheduler so our tasks start executing. */
 	vTaskStartScheduler();
 
-	/* Nunca debería arribar aquí */
+	for( ;; );
+	return 0;
+}
+/*-----------------------------------------------------------*/
 
-    return 0;
+static void vTestTFTTask( void *pvParameters )
+{
+//	uint8_t comando,data;
+	int i;
+	for( ;; ){
+		// Reseteo por HW
+		Chip_GPIO_WritePortBit(LPC_GPIO,RST_PORT_NUM,RST_BIT_NUM,true);
+		vTaskDelay(1/portTICK_RATE_MS);
+		Chip_GPIO_WritePortBit(LPC_GPIO,RST_PORT_NUM,RST_BIT_NUM,false);
+		vTaskDelay(1/portTICK_RATE_MS);
+		Chip_GPIO_WritePortBit(LPC_GPIO,RST_PORT_NUM,RST_BIT_NUM,true);
+		vTaskDelay(1/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_SWRESET);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_SLPOUT);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_PIXFMT);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0x05);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_GAMMASET);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0x01);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_GAMRSEL);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0x01);
+
+		TFT_EscribirComando(CMD_NORML);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_DFUNCTR);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0b11111111);
+		TFT_EscribirDato(0b00000110);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		// Terminar despues
+		// Positive Gamma Correction Setting
+		//Negative Gamma Correction Setting
+
+		TFT_EscribirComando(CMD_FRMCTR1);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0x08);//0x0C//0x08
+		TFT_EscribirDato(0x02);//0x14//0x08
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_DINVCTR);//display inversion
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0x07);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_PWCTR1);//Set VRH1[4:0] & VC[2:0] for VCI1 & GVDD
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0x0A);//4.30 - 0x0A
+		TFT_EscribirDato(0x02);//0x05
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_PWCTR2);//Set BT[2:0] for AVDD & VCL & VGH & VGL
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0x02);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_VCOMOFFS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0);//0x40
+		vTaskDelay(5/portTICK_RATE_MS);
+
+
+		TFT_EscribirComando(CMD_CLMADRS);//Set Column Address
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0>>8);
+		TFT_EscribirDato(0);
+		TFT_EscribirDato(WIDTH>>8);
+		TFT_EscribirDato(WIDTH);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+		TFT_EscribirComando(CMD_PGEADRS);//Set Page Address
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(0>>8);
+		TFT_EscribirDato(0);
+		TFT_EscribirDato(HEIGHT>>8);	//Probar 160
+		TFT_EscribirDato(HEIGHT);	//Probar 160
+		vTaskDelay(5/portTICK_RATE_MS);
+/*		// set scroll area (offset 160 132)
+		TFT_EscribirComando(CMD_VSCLLDEF);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(__OFFSET);
+		TFT_EscribirDato
+		TFT_EscribirDato(_GRAMHEIGH - __OFFSET);
+		TFT_EscribirDato
+		TFT_EscribirDato(0);
+		TFT_EscribirDato*/
+
+//		colorSpace(_colorspaceData);
+//		setRotation(0);
+
+		TFT_EscribirComando(CMD_DISPON);
+		vTaskDelay(5/portTICK_RATE_MS);
+
+
+		TFT_EscribirComando(CMD_RAMWR);//Memory Write
+		vTaskDelay(5/portTICK_RATE_MS);
+
+
+
+		// Cuadrado rojo
+		TFT_EscribirComando(CMD_CLMADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(CLM_START1>>8);
+		TFT_EscribirDato(CLM_START1);
+		TFT_EscribirDato((CLM_START1+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((CLM_START1+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_PGEADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(PAGE_START>>8);
+		TFT_EscribirDato(PAGE_START);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_RAMWR);
+		for(i=0; i<SQUARE_SIZE*SQUARE_SIZE ; i++){
+			TFT_EscribirDato(0b00000000);
+			TFT_EscribirDato(0b00011111);
+		}
+		// Cuadrado verde
+		TFT_EscribirComando(CMD_CLMADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(CLM_START2>>8);
+		TFT_EscribirDato(CLM_START2);
+		TFT_EscribirDato((CLM_START2+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((CLM_START2+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_PGEADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(PAGE_START>>8);
+		TFT_EscribirDato(PAGE_START);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_RAMWR);
+		for(i=0; i<SQUARE_SIZE*SQUARE_SIZE ; i++){
+			TFT_EscribirDato(0b00000111);
+			TFT_EscribirDato(0b11100000);
+		}
+		// Cuadrado azul
+		TFT_EscribirComando(CMD_CLMADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(CLM_START3>>8);
+		TFT_EscribirDato(CLM_START3);
+		TFT_EscribirDato((CLM_START3+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((CLM_START3+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_PGEADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(PAGE_START>>8);
+		TFT_EscribirDato(PAGE_START);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_RAMWR);
+		for(i=0; i<SQUARE_SIZE*SQUARE_SIZE ; i++){
+			TFT_EscribirDato(0b11111000);
+			TFT_EscribirDato(0b00000000);
+		}
+		// Cuadrado blanco
+		TFT_EscribirComando(CMD_CLMADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(CLM_START4>>8);
+		TFT_EscribirDato(CLM_START4);
+		TFT_EscribirDato((CLM_START4+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((CLM_START4+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_PGEADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(PAGE_START>>8);
+		TFT_EscribirDato(PAGE_START);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_RAMWR);
+		for(i=0; i<SQUARE_SIZE*SQUARE_SIZE ; i++){
+			TFT_EscribirDato(0b11111111);
+			TFT_EscribirDato(0b11111111);
+		}
+		// Cuadrado negro
+		TFT_EscribirComando(CMD_CLMADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(CLM_START5>>8);
+		TFT_EscribirDato(CLM_START5);
+		TFT_EscribirDato((CLM_START5+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((CLM_START5+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_PGEADRS);
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirDato(PAGE_START>>8);
+		TFT_EscribirDato(PAGE_START);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE)>>8);
+		TFT_EscribirDato((PAGE_START+SQUARE_SIZE));
+		vTaskDelay(5/portTICK_RATE_MS);
+		TFT_EscribirComando(CMD_RAMWR);
+		for(i=0; i<SQUARE_SIZE*SQUARE_SIZE ; i++){
+			TFT_EscribirDato(0b00000000);
+			TFT_EscribirDato(0b00000000);
+		}
+
+//		 TFT_EscribirComando(CMD_DINVON);
+		vTaskDelay(10000/portTICK_RATE_MS);
+	}
+
+}
+
+
+/*-----------------------------------------------------------*/
+/*void SSP1_IRQHandler(void) {
+	int i ;
+
+	i=0;
+
+}*/
+/*-----------------------------------------------------------*/
+
+/*-----------------------------------------------------------*/
+
+void TFT_EscribirComando(uint16_t comando)
+{
+	Chip_GPIO_WritePortBit(LPC_GPIO,A0_PORT_NUM,A0_BIT_NUM,false);
+	Chip_SSP_WriteFrames_Blocking(LPC_SSP1,&comando,1);
+}
+void TFT_EscribirDato(uint16_t dato)
+{
+	Chip_GPIO_WritePortBit(LPC_GPIO,A0_PORT_NUM,A0_BIT_NUM,true);
+	Chip_SSP_WriteFrames_Blocking(LPC_SSP1,&dato,1);
 }
 

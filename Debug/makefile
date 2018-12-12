@@ -24,32 +24,31 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: EjemploColaTarea.axf
+all: PruebaPantallaILI2.axf
 
 dependents:
-	-cd C:/Users/Fede/Documents/MCUXpressoIDE_10.1.1_606/workspace/lpc_chip_175x_6x/Debug && $(MAKE) all
+	-cd C:/Users/unknown/Documents/LPCWorkspace/lpc_chip_175x_6x/Debug && $(MAKE) all
 
 # Tool invocations
-EjemploColaTarea.axf: $(OBJS) $(USER_OBJS) C:/Users/Fede/Documents/MCUXpressoIDE_10.1.1_606/workspace/lpc_chip_175x_6x/Debug/liblpc_chip_175x_6x.a
+PruebaPantallaILI2.axf: $(OBJS) $(USER_OBJS) C:/Users/unknown/Documents/LPCWorkspace/lpc_chip_175x_6x/Debug/liblpc_chip_175x_6x.a
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU Linker'
-	arm-none-eabi-gcc -nostdlib -L"C:\Users\Fede\Documents\MCUXpressoIDE_10.1.1_606\workspace\lpc_chip_175x_6x\Debug" -Xlinker -Map="EjemploColaTarea.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "EjemploColaTarea_Debug.ld" -o "EjemploColaTarea.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-gcc -nostdlib -L"C:\Users\unknown\Documents\LPCWorkspace\lpc_board_nxp_lpcxpresso_1769\Debug" -L"C:\Users\unknown\Documents\LPCWorkspace\lpc_chip_175x_6x\Debug" -Xlinker -Map="PruebaPantallaILI2.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "EjemploColaTarea_Debug.ld" -o "PruebaPantallaILI2.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
 
 # Other Targets
 clean:
-	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) EjemploColaTarea.axf
+	-$(RM) $(EXECUTABLES)$(OBJS)$(C_DEPS) PruebaPantallaILI2.axf
 	-@echo ' '
 
 post-build:
 	-@echo 'Performing post-build steps'
-	-arm-none-eabi-size "EjemploColaTarea.axf"; # arm-none-eabi-objcopy -v -O binary "EjemploColaTarea.axf" "EjemploColaTarea.bin" ; # checksum -p LPC1769 -d "EjemploColaTarea.bin";
+	-arm-none-eabi-size "PruebaPantallaILI2.axf"; # arm-none-eabi-objcopy -v -O binary "PruebaPantallaILI2.axf" "PruebaPantallaILI2.bin" ; # checksum -p LPC1769 -d "PruebaPantallaILI2.bin";
 	-@echo ' '
 
-.PHONY: all clean dependents
-.SECONDARY: post-build
-C:/Users/Fede/Documents/MCUXpressoIDE_10.1.1_606/workspace/lpc_chip_175x_6x/Debug/liblpc_chip_175x_6x.a:
+.PHONY: all clean dependents post-build
+C:/Users/unknown/Documents/LPCWorkspace/lpc_chip_175x_6x/Debug/liblpc_chip_175x_6x.a:
 
 -include ../makefile.targets
